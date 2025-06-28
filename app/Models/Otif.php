@@ -9,6 +9,15 @@ class Otif extends Model
 {
     use HasFactory;
 
+    protected $table = 'otifs';
+
+    protected $fillable = [
+        'produk',
+        'jumlah_pesanan',
+        'jumlah_terkirim',
+        'tanggal_pesanan',
+        'tanggal_kirim',
+    ];
     protected $casts = [
         'tanggal_pesanan' => 'datetime', 
         'tanggal_kirim' => 'datetime', 
