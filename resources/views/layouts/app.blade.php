@@ -29,7 +29,7 @@
 
 <body>
     <div class="container">
-        <h1 class="mb-4 fw-bold">Upload Data</h1>
+        <h1 class="mb-4 fw-bold">Upload Data Smart</h1>
         <div class="card-body">
             @yield('content')
         </div>
