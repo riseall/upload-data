@@ -14,8 +14,12 @@ class UploadController extends Controller
 {
     public function showData()
     {
-        $otifData = Otif::orderBy('created_at', 'desc')->get();
-        return view('upload', compact('otifData'));
+        $otifData = Otif::orderBy('id', 'desc')->limit(10)->get();
+        $topData = Top::orderBy('id', 'desc')->limit(10)->get();
+        $sellingOutData = SellingOut::orderBy('id', 'desc')->limit(10)->get();
+        $inventoryData = Inventory::orderBy('id', 'desc')->limit(10)->get();
+
+        return view('upload', compact('otifData', 'topData', 'sellingOutData', 'inventoryData'));
     }
 
     public function uploadData(Request $request)
@@ -55,7 +59,7 @@ class UploadController extends Controller
                     // Logika untuk menyimpan data Selling Out
                     SellingOut::create([
                         'nama_produk' => $data['nama_produk'],
-                        'jumlah_terjual' => $data['jumlah_jual'],
+                        'jumlah_terjual' => $data['jumlah_terjual'],
                         'tanggal_jual' => Carbon::parse($data['tanggal_jual']),
                     ]);
                 } elseif ($dataType === 'inventory') {
