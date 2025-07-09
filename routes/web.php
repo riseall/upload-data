@@ -14,5 +14,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', [UploadController::class, 'showData'])->name('upload.show');
+Route::get('/', function () {
+    return view('index');
+});
+Route::get('/upload', [UploadController::class, 'showUpload'])->name('upload.show');
 Route::post('/upload', [UploadController::class, 'uploadData'])->name('upload.data');
+Route::get('/data', [UploadController::class, 'showData'])->name('upload.show');

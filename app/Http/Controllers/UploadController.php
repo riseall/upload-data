@@ -19,7 +19,12 @@ class UploadController extends Controller
         $sellingOutData = SellingOut::orderBy('id', 'desc')->limit(10)->get();
         $inventoryData = Inventory::orderBy('id', 'desc')->limit(10)->get();
 
-        return view('upload', compact('otifData', 'topData', 'sellingOutData', 'inventoryData'));
+        return view('data', compact('otifData', 'topData', 'sellingOutData', 'inventoryData'));
+    }
+
+    public function showUpload()
+    {
+        return view('upload');
     }
 
     public function uploadData(Request $request)
