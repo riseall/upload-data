@@ -2,11 +2,10 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
-        <div class="sidebar-brand-icon rotate-n-15">
-            <i class="fas fa-laugh-wink"></i>
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+        <div class="sidebar-brand-icon">
+            <img class="w-50 px-3 px-sm-0 mt-3 mb-4" src="img/LogoPHwht.png">
         </div>
-        <div class="sidebar-brand-text mx-3">METD</div>
     </a>
 
     <!-- Divider -->
