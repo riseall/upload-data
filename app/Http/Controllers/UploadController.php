@@ -12,6 +12,16 @@ use League\Csv\Reader;
 
 class UploadController extends Controller
 {
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     public function showData()
     {
         $otifData = Otif::orderBy('id', 'desc')->limit(10)->get();
