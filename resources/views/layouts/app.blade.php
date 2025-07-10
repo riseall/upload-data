@@ -12,25 +12,6 @@
         rel="stylesheet">
 
     <link href="css/admin.min.css" rel="stylesheet">
-    {{-- <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin-top: 50px;
-            margin-bottom: 50px;
-            padding: 30px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-label {
-            font-weight: bold;
-        }
-    </style> --}}
 </head>
 
 <body id="page-top">
@@ -85,10 +66,18 @@
     <!-- Bootstrap core JavaScript-->
     <!-- Ganti bagian script di bawah -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core plugin JavaScript-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
     <script src="js/admin.min.js"></script>
+
+    @stack('scripts')
 </body>
 
 </html>

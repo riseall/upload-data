@@ -34,7 +34,7 @@
                     {{-- Tabel OTIF --}}
                     <div class="tab-pane fade show active" id="otif" role="tabpanel" aria-labelledby="otif-tab">
                         <div class="table-responsive mt-3">
-                            <table class="table table-striped table-bordered table-hover" id="dataTable" width="100%"
+                            <table class="table table-striped table-bordered table-hover" id="otifTable" width="100%"
                                 cellspacing="0">
                                 <thead class="table-dark">
                                     <tr>
@@ -167,6 +167,11 @@
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
 @endsection
+
+@push('scripts')
+    {{-- PINDAHKAN SEMUA SCRIPT KE SINI --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
+    <script src="js/datatables.js"></script>
+@endpush
