@@ -8,6 +8,7 @@ use App\Models\SellingOut;
 use App\Models\Top;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use League\Csv\Reader;
 
 class UploadController extends Controller
@@ -24,7 +25,7 @@ class UploadController extends Controller
 
     public function showData()
     {
-        $otifData = Otif::orderBy('id', 'desc')->limit(10)->get();
+        $otifData = Otif::orderBy('id', 'desc')->get();
         $topData = Top::orderBy('id', 'desc')->limit(10)->get();
         $sellingOutData = SellingOut::orderBy('id', 'desc')->limit(10)->get();
         $inventoryData = Inventory::orderBy('id', 'desc')->limit(10)->get();
@@ -47,8 +48,12 @@ class UploadController extends Controller
 
         $dataType = $request->input('data_type');
         $file = request()->file('csv_file');
+        $uploadDate = Carbon::now()->toDateString(); //tgl upload hari ini
 
         try {
+            // Hapus data lama untuk tipe data yang sama pada hari ini
+            $this->clearExistingData($dataType, $uploadDate);
+
             $csv = Reader::createFromPath($file->getRealPath(), 'r');
             $csv->setHeaderOffset(0); // Jika baris pertama adalah header
 
@@ -88,7 +93,38 @@ class UploadController extends Controller
             }
             return redirect()->back()->with('success', 'Data berhasil diunggah!');
         } catch (\Exception $e) {
+            // Tangkap dan log error secara lebih detail di produksi
+            Log::error('Gagal mengunggah data CSV: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->back()->with('error', 'Gagal mengunggah data: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Menghapus data yang sudah ada untuk tipe dan tanggal upload yang sama.
+     *
+     * @param string $dataType
+     * @param string $uploadDate (YYYY-MM-DD)
+     * @return void
+     */
+    protected function clearExistingData(string $dataType, string $uploadDate): void
+    {
+        switch ($dataType) {
+            case 'otif':
+                // Hapus data Otif yang dibuat pada tanggal upload ini
+                Otif::whereDate('created_at', $uploadDate)->delete();
+                break;
+            case 'top':
+                Top::whereDate('created_at', $uploadDate)->delete();
+                break;
+            case 'selling_out':
+                SellingOut::whereDate('created_at', $uploadDate)->delete();
+                break;
+            case 'inventory':
+                Inventory::whereDate('created_at', $uploadDate)->delete();
+                break;
+            default:
+                // Handle kasus jika dataType tidak dikenali (opsional)
+                break;
         }
     }
 }

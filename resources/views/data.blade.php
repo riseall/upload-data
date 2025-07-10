@@ -36,7 +36,7 @@
                         <div class="table-responsive mt-3">
                             <table class="table table-striped table-bordered table-hover" id="otifTable" width="100%"
                                 cellspacing="0">
-                                <thead class="table-dark">
+                                <thead class="table-primary">
                                     <tr>
                                         <th>ID</th>
                                         <th>Produk</th>
@@ -71,8 +71,9 @@
                     {{-- Tabel TOP --}}
                     <div class="tab-pane fade" id="top" role="tabpanel" aria-labelledby="top-tab">
                         <div class="table-responsive mt-3">
-                            <table class="table table-striped table-bordered table-hover">
-                                <thead class="table-dark">
+                            <table class="table table-striped table-bordered table-hover" id="topTable" width="100%"
+                                cellspacing="0">
+                                <thead class="table-primary">
                                     <tr>
                                         <th>ID</th>
                                         <th>Nama Target</th>
@@ -103,8 +104,9 @@
                     {{-- Tabel Selling Out --}}
                     <div class="tab-pane fade" id="selling-out" role="tabpanel" aria-labelledby="selling-out-tab">
                         <div class="table-responsive mt-3">
-                            <table class="table table-striped table-bordered table-hover">
-                                <thead class="table-dark">
+                            <table class="table table-striped table-bordered table-hover" id="sellingOutTable"
+                                width="100%" cellspacing="0">
+                                <thead class="table-primary">
                                     <tr>
                                         <th>ID</th>
                                         <th>Nama Produk</th>
@@ -135,8 +137,9 @@
                     {{-- Tabel Inventory --}}
                     <div class="tab-pane fade" id="inventory" role="tabpanel" aria-labelledby="inventory-tab">
                         <div class="table-responsive mt-3">
-                            <table class="table table-striped table-bordered table-hover">
-                                <thead class="table-dark">
+                            <table class="table table-striped table-bordered table-hover" id="inventoryTable" width="100%"
+                                cellspacing="0">
+                                <thead class="table-primary">
                                     <tr>
                                         <th>ID</th>
                                         <th>Nama Barang</th>
