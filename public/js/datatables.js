@@ -24,12 +24,12 @@ document.addEventListener("DOMContentLoaded", function () {
             : null;
         const loadingRow = document.getElementById(`loading-row-${tableId}`);
 
-        if (!tableElement || !tableBody || !loadingRow) {
-            console.error(
-                `Elemen tabel, tbody, atau baris loading dengan ID '${tableId}' tidak ditemukan.`
-            );
-            return;
-        }
+        // if (!tableElement || !tableBody || !loadingRow) {
+        //     console.error(
+        //         `Elemen tabel, tbody, atau baris loading dengan ID '${tableId}' tidak ditemukan.`
+        //     );
+        //     return;
+        // }
 
         // Show loading spinner
         loadingRow.style.display = "table-row";
@@ -73,19 +73,27 @@ document.addEventListener("DOMContentLoaded", function () {
                         if (
                             col.key.includes("_at") ||
                             col.key.includes("tanggal") ||
-                            col.key.includes("date")
+                            col.key.includes("date") ||
+                            col.key.includes("tgl")
                         ) {
                             if (cellValue) {
                                 try {
-                                    cellValue = new Date(
-                                        cellValue
-                                    ).toLocaleString();
+                                    const dateObj = new Date(cellValue);
+                                    if (!isNaN(dateObj.getTime())) {
+                                        // Check for valid date
+                                        // Format as YYYY-MM-DD
+                                        const year = dateObj.getFullYear();
+                                        const month = String(
+                                            dateObj.getMonth() + 1
+                                        ).padStart(2, "0"); // Months are 0-indexed
+                                        const day = String(
+                                            dateObj.getDate()
+                                        ).padStart(2, "0");
+                                        cellValue = `${year}-${month}-${day}`;
+                                    }
                                 } catch (e) {
-                                    cellValue = "Invalid Date";
                                     console.warn(
-                                        `Invalid date format for key ${
-                                            col.key
-                                        }: ${item[col.key]}`
+                                        `Invalid date format for key ${col.key}: ${cellValue}`
                                     );
                                 }
                             }
@@ -107,8 +115,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     paging: true,
                     searching: true,
                     info: true,
-                    // responsive: true // Aktifkan jika Anda ingin responsif
+                    autoWidth: true,
+                    // responsive: true, // Aktifkan jika Anda ingin responsif
                 });
+
+                dataTableInstances[tableId].columns.adjust().draw();
             } else {
                 tableBody.innerHTML = `<tr><td colspan="${colspan}" class="text-center">Data ${fallbackMessage} masih kosong.</td></tr>`;
                 // Jika tidak ada data, DataTables tidak perlu diinisialisasi
