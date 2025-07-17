@@ -7,7 +7,16 @@
                     {{ session('status') }}
                 </div>
             @endif
-            <h1 class="h3 mb-0 text-gray-800">Selamat Datang, {{ Auth::user()->name }}</h1>
+            <div class="row">
+                <h3 class="mb-2 text-gray-800">
+                    <strong>Selamat Datang,</strong>
+                    <span id="home-user-name">Guest</span>
+                </h3>
+
+                <div class="col-lg-12">
+                    <h5>Ini adalah dashboard aplikasi Anda.</h5>
+                </div>
+            </div>
         </div>
     </div>
 @endsection

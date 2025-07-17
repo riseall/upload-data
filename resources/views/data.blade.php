@@ -1,167 +1,314 @@
 @extends('layouts.app')
 @section('content')
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.dataTables.css" />
+    <style>
+        /* Custom CSS for Loading Spinner */
+        .spinner-container {
+            text-align: center;
+            color: #4e73df;
+            /* Primary color from SB Admin 2 */
+            padding: 20px;
+            /* Add some padding around the spinner */
+            width: 100%;
+            /* Ensure it takes full width of the cell */
+            display: block;
+            /* Ensure it behaves like a block element for centering */
+        }
 
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.3em;
+        }
+
+        .loading-text {
+            font-weight: bold;
+        }
+    </style>
     <div class="container-fluid">
         <div class="d-sm-flex mb-4">
             <h1 class="h3 mb-0 text-gray-800">Data yang Sudah Tersimpan</h1>
         </div>
         <div class="card shadow mb-4">
             <div class="card-body">
+
                 {{-- Tab untuk memilih jenis data yang akan ditampilkan --}}
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="otif-tab" data-bs-toggle="tab" data-bs-target="#otif"
-                            type="button" role="tab" aria-controls="otif" aria-selected="true">OTIF</button>
+                        <button class="nav-link active" id="mstrProd-tab" data-bs-toggle="tab" data-bs-target="#prod-pane"
+                            type="button" role="tab" aria-controls="prod-pane" aria-selected="true">Master
+                            Product</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="top-tab" data-bs-toggle="tab" data-bs-target="#top" type="button"
-                            role="tab" aria-controls="top" aria-selected="false">TOP</button>
+                        <button class="nav-link" id="cust-tab" data-bs-toggle="tab" data-bs-target="#cust-pane"
+                            type="button" role="tab" aria-controls="cust-pane" aria-selected="false">Master
+                            Customer</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="selling-out-tab" data-bs-toggle="tab" data-bs-target="#selling-out"
-                            type="button" role="tab" aria-controls="selling-out" aria-selected="false">Selling
-                            Out</button>
+                        <button class="nav-link" id="stock-tab" data-bs-toggle="tab" data-bs-target="#stock-pane"
+                            type="button" role="tab" aria-controls="stock-pane" aria-selected="false">Stock
+                            METD</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory"
-                            type="button" role="tab" aria-controls="inventory" aria-selected="false">Inventory</button>
+                        <button class="nav-link" id="faktur-tab" data-bs-toggle="tab" data-bs-target="#faktur-pane"
+                            type="button" role="tab" aria-controls="faktur-pane" aria-selected="false">Sellout dengan
+                            Faktur</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="nonfaktur-tab" data-bs-toggle="tab" data-bs-target="#nonfaktur-pane"
+                            type="button" role="tab" aria-controls="nonfaktur-pane" aria-selected="false">Sellout tanpa
+                            Faktur</button>
                     </li>
                 </ul>
 
                 {{-- Konten untuk setiap tab (tabel data) --}}
                 <div class="tab-content" id="myTabContent">
-                    {{-- Tabel OTIF --}}
-                    <div class="tab-pane fade show active" id="otif" role="tabpanel" aria-labelledby="otif-tab">
-                        <div class="table-responsive mt-3">
-                            <table class="table table-striped table-bordered table-hover" id="otifTable" width="100%"
+                    {{-- Tabel Master Product --}}
+                    <div class="tab-pane fade show active" id="prod-pane" role="tabpanel" aria-labelledby="mstrProd-tab">
+                        <div class="table-responsive mt-3" style="position: relative;">
+                            <table class="table table-striped table-bordered table-hover" id="prodTable" width="100%"
                                 cellspacing="0">
                                 <thead class="table-primary">
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Produk</th>
-                                        <th>Jumlah Pesanan</th>
-                                        <th>Jumlah Terkirim</th>
-                                        <th>Tanggal Pesanan</th>
-                                        <th>Tanggal Kirim</th>
-                                        <th>Dibuat Pada</th>
+                                        <th>No.</th>
+                                        <th>Kode Barang METD</th>
+                                        <th>Kode Barang PH</th>
+                                        <th>Nama Barang METD</th>
+                                        <th>Nama Barang PH</th>
+                                        <th>Satuan METD</th>
+                                        <th>Satuan PH</th>
+                                        <th>Konversi Qty</th>
+                                        <th>Tanggal Upload</th>
+                                        {{-- <th>Updated At</th> --}}
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @forelse ($otifData as $data)
-                                        <tr>
-                                            <td>{{ $data->id }}</td>
-                                            <td>{{ $data->produk }}</td>
-                                            <td>{{ $data->jumlah_pesanan }}</td>
-                                            <td>{{ $data->jumlah_terkirim }}</td>
-                                            <td>{{ $data->tanggal_pesanan }}</td>
-                                            <td>{{ $data->tanggal_kirim }}</td>
-                                            <td>{{ $data->created_at->format('d-m-Y H:i:s') }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="7" class="text-center">Belum ada data OTIF.</td>
-                                        </tr>
-                                    @endforelse
+                                <tbody id="master-product-table-body">
+                                    <tr id="loading-row-prodTable" style="display: none;">
+                                        <td colspan="10" class="text-center">
+                                            <div class="spinner-container">
+                                                <div class="spinner-border" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <div class="loading-text">Memuat Master Product...</div>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    {{-- Tabel TOP --}}
-                    <div class="tab-pane fade" id="top" role="tabpanel" aria-labelledby="top-tab">
-                        <div class="table-responsive mt-3">
-                            <table class="table table-striped table-bordered table-hover" id="topTable" width="100%"
+                    {{-- Tabel Master Customer --}}
+                    <div class="tab-pane fade" id="cust-pane" role="tabpanel" aria-labelledby="cust-tab">
+                        <div class="table-responsive mt-3" style="position: relative;">
+                            <table class="table table-striped table-bordered table-hover" id="custTable" width="100%"
                                 cellspacing="0">
                                 <thead class="table-primary">
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Nama Target</th>
-                                        <th>Target Value</th>
-                                        <th>Tanggal Target</th>
-                                        <th>Dibuat Pada</th>
+                                        <th>No.</th>
+                                        <th>Id Outlet</th>
+                                        <th>Nama Outlet</th>
+                                        <th>Cabang PH</th>
+                                        <th>Kode Cabang PH</th>
+                                        <th>Cabang METD</th>
+                                        <th>Alamat 1</th>
+                                        <th>Alamat 2</th>
+                                        <th>Alamat 3</th>
+                                        <th>No. Telepon</th>
+                                        <th>Tanggal Upload</th>
+                                        {{-- <th>Updated At</th> --}}
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @forelse ($topData as $data)
-                                        <tr>
-                                            <td>{{ $data->id }}</td>
-                                            <td>{{ $data->nama_target }}</td>
-                                            <td>{{ $data->target_value }}</td>
-                                            <td>{{ $data->tanggal_target }}</td>
-                                            <td>{{ $data->created_at->format('d-m-Y H:i:s') }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center">Belum ada data TOP.</td>
-                                        </tr>
-                                    @endforelse
+                                <tbody id="master-customer-table-body">
+                                    <tr id="loading-row-custTable" style="display: none;">
+                                        <td colspan="12" class="text-center">
+                                            <div class="spinner-container">
+                                                <div class="spinner-border" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <div class="loading-text">Memuat Master Customer...</div>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    {{-- Tabel Selling Out --}}
-                    <div class="tab-pane fade" id="selling-out" role="tabpanel" aria-labelledby="selling-out-tab">
-                        <div class="table-responsive mt-3">
-                            <table class="table table-striped table-bordered table-hover" id="sellingOutTable"
+                    {{-- Tabel Stock METD --}}
+                    <div class="tab-pane fade" id="stock-pane" role="tabpanel" aria-labelledby="stock-tab">
+                        <div class="table-responsive mt-3" style="position: relative;">
+                            <table class="table table-striped table-bordered table-hover" id="stockTable" width="100%"
+                                cellspacing="0">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th>No.</th>
+                                        <th>Kode Barang METD</th>
+                                        <th>Kode Barang PH</th>
+                                        <th>Nama Barang METD</th>
+                                        <th>Nama Barang PH</th>
+                                        <th>Plant</th>
+                                        <th>Nama Plant</th>
+                                        <th>Suhu Gudang Penyimpanan</th>
+                                        <th>Batch PH</th>
+                                        <th>Expired Date</th>
+                                        <th>Satuan METD</th>
+                                        <th>Satuan PH</th>
+                                        <th>Harga Beli</th>
+                                        <th>Konversi Qty</th>
+                                        <th>Qty On Hand</th>
+                                        <th>Qty Sellable</th>
+                                        <th>Qty Non Sellable</th>
+                                        <th>Qty Intransit In</th>
+                                        <th>Nilai Intransit In</th>
+                                        <th>Qty Intransit Pass</th>
+                                        <th>Nilai Intransit Pass</th>
+                                        <th>Tanggal Terima Barang</th>
+                                        <th>Source Beli</th>
+                                        <th>Tanggal Upload</th>
+                                        {{-- <th>Updated At</th> --}}
+                                    </tr>
+                                </thead>
+                                <tbody id="stock-metd-table-body">
+                                    <tr id="loading-row-stockTable" style="display: none;">
+                                        <td colspan="25" class="text-center">
+                                            <div class="spinner-container">
+                                                <div class="spinner-border" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <div class="loading-text">Memuat Stock METD...</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- Tabel Sellout Faktur --}}
+                    <div class="tab-pane fade" id="faktur-pane" role="tabpanel" aria-labelledby="faktur-tab">
+                        <div class="table-responsive mt-3" style="position: relative;">
+                            <table class="table table-striped table-bordered table-hover" id="fakturTable" width="100%"
+                                cellspacing="0">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th>No.</th>
+                                        <th>Kode Cabang PH</th>
+                                        <th>Cabang PH</th>
+                                        <th>Tanggal Faktur</th>
+                                        <th>Id Outlet</th>
+                                        <th>No Faktur</th>
+                                        <th>No Invoice</th>
+                                        <th>Status</th>
+                                        <th>Nama Outlet</th>
+                                        <th>Alamat 1</th>
+                                        <th>Alamat 2</th>
+                                        <th>Alamat 3</th>
+                                        <th>Kode Barang METD</th>
+                                        <th>Kode Barang PH</th>
+                                        <th>Nama Barang METD</th>
+                                        <th>Satuan METD</th>
+                                        <th>Satuan PH</th>
+                                        <th>Qty</th>
+                                        <th>Konversi Qty</th>
+                                        <th>HNA</th>
+                                        <th>Diskon Dimuka (%)</th>
+                                        <th>Diskon Dimuka</th>
+                                        <th>Diskon 1 (%)</th>
+                                        <th>Diskon 1</th>
+                                        <th>Diskon 2 (%)</th>
+                                        <th>Diskon 2</th>
+                                        <th>Total Diskon (%)</th>
+                                        <th>Total Diskon</th>
+                                        <th>Netto</th>
+                                        <th>Brutto</th>
+                                        <th>Ppn</th>
+                                        <th>Jumlah</th>
+                                        <th>Segmen</th>
+                                        <th>SO Number</th>
+                                        <th>No Shipper</th>
+                                        <th>No PO</th>
+                                        <th>Batch PH</th>
+                                        <th>Expired Date</th>
+                                        <th>Tanggal Upload</th>
+                                        {{-- <th>Updated At</th> --}}
+                                    </tr>
+                                </thead>
+                                <tbody id="sellout-faktur-table-body">
+                                    <tr id="loading-row-fakturTable" style="display: none;">
+                                        <td colspan="40" class="text-center">
+                                            <div class="spinner-container">
+                                                <div class="spinner-border" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <div class="loading-text">Memuat Sellout Faktur...</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- Tabel Sellout NonFaktur --}}
+                    <div class="tab-pane fade" id="nonfaktur-pane" role="tabpanel" aria-labelledby="nonfaktur-tab">
+                        <div class="table-responsive mt-3" style="position: relative;">
+                            <table class="table table-striped table-bordered table-hover" id="nonfakturTable"
                                 width="100%" cellspacing="0">
                                 <thead class="table-primary">
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Nama Produk</th>
-                                        <th>Jumlah Terjual</th>
-                                        <th>Tanggal Jual</th>
-                                        <th>Dibuat Pada</th>
+                                        <th>No.</th>
+                                        <th>Kode Cabang PH</th>
+                                        <th>Cabang PH</th>
+                                        <th>Tanggal Transaksi</th>
+                                        <th>Id Outlet</th>
+                                        <th>No Invoice</th>
+                                        <th>Status</th>
+                                        <th>Nama Outlet</th>
+                                        <th>Alamat 1</th>
+                                        <th>Alamat 2</th>
+                                        <th>Alamat 3</th>
+                                        <th>Kode Barang METD</th>
+                                        <th>Kode Barang PH</th>
+                                        <th>Nama Barang METD</th>
+                                        <th>Satuan METD</th>
+                                        <th>Satuan PH</th>
+                                        <th>Qty</th>
+                                        <th>Konversi Qty</th>
+                                        <th>HNA</th>
+                                        <th>Diskon Dimuka (%)</th>
+                                        <th>Diskon Dimuka</th>
+                                        <th>Diskon 1 (%)</th>
+                                        <th>Diskon 1</th>
+                                        <th>Diskon 2 (%)</th>
+                                        <th>Diskon 2</th>
+                                        <th>Total Diskon (%)</th>
+                                        <th>Total Diskon</th>
+                                        <th>Netto</th>
+                                        <th>Brutto</th>
+                                        <th>Ppn</th>
+                                        <th>Jumlah</th>
+                                        <th>Segmen</th>
+                                        <th>SO Number</th>
+                                        <th>No Shipper</th>
+                                        <th>No PO</th>
+                                        <th>Batch PH</th>
+                                        <th>Expired Date</th>
+                                        <th>Tanggal Upload</th>
+                                        {{-- <th>Updated At</th> --}}
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @forelse ($sellingOutData as $data)
-                                        <tr>
-                                            <td>{{ $data->id }}</td>
-                                            <td>{{ $data->nama_produk }}</td>
-                                            <td>{{ $data->jumlah_terjual }}</td>
-                                            <td>{{ $data->tanggal_jual }}</td>
-                                            <td>{{ $data->created_at->format('d-m-Y H:i:s') }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center">Belum ada data Selling Out.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {{-- Tabel Inventory --}}
-                    <div class="tab-pane fade" id="inventory" role="tabpanel" aria-labelledby="inventory-tab">
-                        <div class="table-responsive mt-3">
-                            <table class="table table-striped table-bordered table-hover" id="inventoryTable" width="100%"
-                                cellspacing="0">
-                                <thead class="table-primary">
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nama Barang</th>
-                                        <th>Stok</th>
-                                        <th>Lokasi</th>
-                                        <th>Dibuat Pada</th>
+                                <tbody id="sellout-nonfaktur-table-body">
+                                    <tr id="loading-row-nonfakturTable" style="display: none;">
+                                        <td colspan="40" class="text-center">
+                                            <div class="spinner-container">
+                                                <div class="spinner-border" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <div class="loading-text">Memuat Sellout Nonfaktur...</div>
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($inventoryData as $data)
-                                        <tr>
-                                            <td>{{ $data->id }}</td>
-                                            <td>{{ $data->nama_barang }}</td>
-                                            <td>{{ $data->stok }}</td>
-                                            <td>{{ $data->lokasi }}</td>
-                                            <td>{{ $data->created_at->format('d-m-Y H:i:s') }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center">Belum ada data Inventory.</td>
-                                        </tr>
-                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
