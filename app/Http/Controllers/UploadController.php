@@ -2,129 +2,122 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Inventory;
-use App\Models\Otif;
-use App\Models\SellingOut;
-use App\Models\Top;
-use Carbon\Carbon;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use League\Csv\Reader;
+use Illuminate\Support\Facades\Validator;
 
 class UploadController extends Controller
 {
     /**
-     * Create a new controller instance.
+     * Menampilkan halaman upload.
      *
-     * @return void
+     * @return \Illuminate\View\View
      */
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
-    public function showData()
-    {
-        $otifData = Otif::orderBy('id', 'desc')->get();
-        $topData = Top::orderBy('id', 'desc')->limit(10)->get();
-        $sellingOutData = SellingOut::orderBy('id', 'desc')->limit(10)->get();
-        $inventoryData = Inventory::orderBy('id', 'desc')->limit(10)->get();
-
-        return view('data', compact('otifData', 'topData', 'sellingOutData', 'inventoryData'));
-    }
-
     public function showUpload()
     {
         return view('upload');
     }
 
+    /**
+     * Memproses upload file CSV dan mengirimkannya ke API backend dengan static bearer token.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function uploadData(Request $request)
     {
-        // validasi Untuk file csv
-        $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt,text/plain|max:2048',
-            'data_type' => 'required|in:otif,top,selling_out,inventory',
+        // Validasi untuk file CSV
+        $validator = Validator::make($request->all(), [
+            'csv_file' => 'required|file|mimes:csv,txt|max:2048',
+            'data_type' => 'required|in:Master Product,Master Customer,Stock METD,Sellout Faktur,Sellout Nonfaktur',
+            'api_token' => 'required|string',
         ]);
 
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
         $dataType = $request->input('data_type');
-        $file = request()->file('csv_file');
-        $uploadDate = Carbon::now()->toDateString(); //tgl upload hari ini
+        $file = $request->file('csv_file');
+        $apiToken = $request->input('api_token');
 
         try {
-            // Hapus data lama untuk tipe data yang sama pada hari ini
-            $this->clearExistingData($dataType, $uploadDate);
+            // Ambil URL API dan Token dari file konfigurasi
+            $erpApiUrl = config('services.erp.url') . '/api/receive-data';
+            // $erpApiToken = config('services.erp.token');
 
-            $csv = Reader::createFromPath($file->getRealPath(), 'r');
-            $csv->setHeaderOffset(0); // Jika baris pertama adalah header
-
-            foreach ($csv as $data) {
-
-                if ($dataType === 'otif') {
-                    // Logika untuk menyimpan data Otif
-                    Otif::create([
-                        'produk' => $data['produk'],
-                        'jumlah_pesanan' => $data['jumlah_pesanan'],
-                        'jumlah_terkirim' => $data['jumlah_terkirim'],
-                        'tanggal_pesanan' => Carbon::parse($data['tanggal_pesanan']),
-                        'tanggal_kirim' => Carbon::parse($data['tanggal_kirim']),
-                    ]);
-                } elseif ($dataType === 'top') {
-                    // Logika untuk menyimpan data TOP
-                    Top::create([
-                        'nama_target' => $data['nama_target'],
-                        'target_value' => $data['target_value'],
-                        'tanggal_target' => Carbon::parse($data['tanggal_target']),
-                    ]);
-                } elseif ($dataType === 'selling_out') {
-                    // Logika untuk menyimpan data Selling Out
-                    SellingOut::create([
-                        'nama_produk' => $data['nama_produk'],
-                        'jumlah_terjual' => $data['jumlah_terjual'],
-                        'tanggal_jual' => Carbon::parse($data['tanggal_jual']),
-                    ]);
-                } elseif ($dataType === 'inventory') {
-                    // Logika untuk menyimpan data Inventory
-                    Inventory::create([
-                        'nama_barang' => $data['nama_barang'],
-                        'stok' => $data['stok'],
-                        'lokasi' => $data['lokasi']
-                    ]);
-                }
+            // Opsi Guzzle untuk request HTTP
+            $requestOptions = [];
+            // Hanya nonaktifkan verifikasi SSL untuk lingkungan lokal
+            if (env('APP_ENV') === 'local') {
+                $requestOptions['verify'] = false;
             }
-            return redirect()->back()->with('success', 'Data berhasil diunggah!');
+
+            // Inisialisasi builder HTTP request
+            $requestBuilder = Http::timeout(120) // Tingkatkan timeout untuk upload file
+                ->withOptions($requestOptions)
+                ->acceptJson();
+
+            // Tambahkan token bearer yang dinamis
+            if ($apiToken) { // Menggunakan $apiToken yang diambil dari request
+                $requestBuilder->withToken($apiToken);
+            } else {
+                // Jika token tidak ada (seharusnya sudah divalidasi), log error dan redirect
+                Log::error('API Token tidak ditemukan di request saat upload data.');
+                return redirect()->back()->with('error', 'Token otentikasi tidak ditemukan. Silakan login kembali.');
+            }
+
+            // Kirim data ke API backend, attach file secara langsung
+            $response = $requestBuilder->attach(
+                'csv_file', // Nama field di form
+                file_get_contents($file->getRealPath()), // Konten file
+                $file->getClientOriginalName(), // Nama file asli
+                ['Content-Type' => $file->getClientMimeType()] // Mime type
+            )->post($erpApiUrl, [
+                'data_type' => $dataType,
+            ]);
+
+            // Tangani response dari API backend
+            if ($response->successful()) {
+                $erpMessage = $response->json('message', 'Data berhasil dikirim ke Server Kacaerp.');
+                return redirect()->back()->with('success', $erpMessage);
+            } else {
+                $statusCode = $response->status();
+                $errorMessageFromErp = $response->json('message');
+                $errorDetailsFromErp = $response->json('errors') ?? $response->json('error_detail');
+
+                $logMessage = "ERP API Error (Status: $statusCode): " . $response->body();
+                Log::error($logMessage);
+
+                $userMessage = '';
+                if ($errorMessageFromErp) {
+                    $userMessage .= $errorMessageFromErp;
+                }
+                if ($errorDetailsFromErp) {
+                    $userMessage .= ' Detail: ' . (is_array($errorDetailsFromErp) ? json_encode($errorDetailsFromErp) : $errorDetailsFromErp);
+                }
+
+                return redirect()->back()->with('error', $userMessage);
+            }
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error('Koneksi ke ERP API gagal: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Tidak dapat terhubung ke server ERP. Pastikan URL dan koneksi sudah benar.');
         } catch (\Exception $e) {
-            // Tangkap dan log error secara lebih detail di produksi
-            Log::error('Gagal mengunggah data CSV: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return redirect()->back()->with('error', 'Gagal mengunggah data: ' . $e->getMessage());
+            Log::error('Kesalahan umum saat memproses file atau mengirim data: ' . $e->getMessage() . ' on line ' . $e->getLine() . ' in ' . $e->getFile());
+            return redirect()->back()->with('error', 'Terjadi kesalahan internal saat memproses file atau mengirim data. Silakan coba lagi atau hubungi administrator.');
         }
     }
 
     /**
-     * Menghapus data yang sudah ada untuk tipe dan tanggal upload yang sama.
+     * Menampilkan data yang sudah diupload (jika ada).
+     * Ini juga akan mengambil data dari API backend.
      *
-     * @param string $dataType
-     * @param string $uploadDate (YYYY-MM-DD)
-     * @return void
+     * @return \Illuminate\View\View
      */
-    protected function clearExistingData(string $dataType, string $uploadDate): void
+    public function showData()
     {
-        switch ($dataType) {
-            case 'otif':
-                // Hapus data Otif yang dibuat pada tanggal upload ini
-                Otif::whereDate('created_at', $uploadDate)->delete();
-                break;
-            case 'top':
-                Top::whereDate('created_at', $uploadDate)->delete();
-                break;
-            case 'selling_out':
-                SellingOut::whereDate('created_at', $uploadDate)->delete();
-                break;
-            case 'inventory':
-                Inventory::whereDate('created_at', $uploadDate)->delete();
-                break;
-            default:
-                // Handle kasus jika dataType tidak dikenali (opsional)
-                break;
-        }
+        return view('data');
     }
 }
