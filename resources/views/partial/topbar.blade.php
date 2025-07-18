@@ -79,8 +79,8 @@
     </div>
 </div>
 <script>
-    const IDLE_TIMEOUT = 7140000; // Contoh: 119 menit (119 * 60 * 1000 ms)
-    const WARNING_TIMEOUT = 60000; // Tampilkan peringatan 1 menit sebelum logout
+    const IDLE_TIMEOUT = 1800000; // 30 menit
+    const WARNING_TIMEOUT = 30000; // 30 detik
 
     let idleTimer;
     let warningTimer;
@@ -177,7 +177,7 @@
     }
 
     // Event listener untuk mendeteksi aktivitas pengguna
-    ['mousemove', 'keydown', 'click', 'scroll'].forEach(event => {
+    ['keydown', 'click'].forEach(event => {
         document.addEventListener(event, resetIdleTimer, false);
     });
 
