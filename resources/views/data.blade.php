@@ -198,8 +198,8 @@
                                         <th>Tanggal Faktur</th>
                                         <th>Id Outlet</th>
                                         <th>No Faktur</th>
-                                        <th>No Invoice</th>
-                                        <th>Status</th>
+                                        {{-- <th>No Invoice</th>
+                                        <th>Status</th> --}}
                                         <th>Nama Outlet</th>
                                         <th>Alamat 1</th>
                                         <th>Alamat 2</th>
@@ -212,8 +212,8 @@
                                         <th>Qty</th>
                                         <th>Konversi Qty</th>
                                         <th>HNA</th>
-                                        <th>Diskon Dimuka (%)</th>
-                                        <th>Diskon Dimuka</th>
+                                        {{-- <th>Diskon Dimuka (%)</th>
+                                        <th>Diskon Dimuka</th> --}}
                                         <th>Diskon 1 (%)</th>
                                         <th>Diskon 1</th>
                                         <th>Diskon 2 (%)</th>
@@ -262,8 +262,8 @@
                                         <th>Cabang PH</th>
                                         <th>Tanggal Transaksi</th>
                                         <th>Id Outlet</th>
-                                        <th>No Invoice</th>
-                                        <th>Status</th>
+                                        {{-- <th>No Invoice</th>
+                                        <th>Status</th> --}}
                                         <th>Nama Outlet</th>
                                         <th>Alamat 1</th>
                                         <th>Alamat 2</th>
@@ -276,8 +276,8 @@
                                         <th>Qty</th>
                                         <th>Konversi Qty</th>
                                         <th>HNA</th>
-                                        <th>Diskon Dimuka (%)</th>
-                                        <th>Diskon Dimuka</th>
+                                        {{-- <th>Diskon Dimuka (%)</th>
+                                        <th>Diskon Dimuka</th> --}}
                                         <th>Diskon 1 (%)</th>
                                         <th>Diskon 1</th>
                                         <th>Diskon 2 (%)</th>
